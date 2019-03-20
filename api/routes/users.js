@@ -44,7 +44,7 @@ router.get('/:id', async (req, res) => {
   try {
     const user = await userDB.getById(id);
     Boolean(user)
-      ? res.status(200).json(user)
+      ? res.status(200).json({ user, posts: await userDB.getUserPosts(id) })
       : res.status(404).json({ message: 'The user with the specified ID does not exist.' });
   } catch (error) {
     res.status(500).json({

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const postDB = require('../../data/helpers/postDb');
+const userDB = require('../../data/helpers/userDb');
 
 // C - POST
 router.post('/', async (req, res) => {
@@ -12,8 +13,10 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    post = await postDB.insert(post);
-    res.status(201).json(post);
+    const user = await userDB.getById(id);
+    Boolean(user)
+      ? res.status(201).json(await postDB.insert(post))
+      : res.status(404).json({ message: 'The user with the specified ID does not exist.' });
   } catch (error) {
     res.status(500).json({
       error: `There was an error while saving the post to the database; ${error}`
@@ -61,10 +64,14 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
-    const count = await postDB.update(id, post);
-    Boolean(count)
-      ? res.status(200).json(await postDB.getById(id))
-      : res.status(404).json({ message: 'The post with the specified ID does not exist.' });
+    const user = await userDB.getById(id);
+    Boolean(user)
+      ? user.id === id
+        ? Boolean(await postDB.update(id, post))
+          ? res.status(200).json(await postDB.getById(id))
+          : res.status(404).json({ message: 'The post with the specified ID does not exist.' })
+        : res.status(401).json({ message: 'You are not authorised to edit this post.' })
+      : res.status(404).json({ message: 'The user with the specified ID does not exist.' });
   } catch (error) {
     res.status(500).json({
       error: `The post information could not be modified; ${error}`
@@ -79,7 +86,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const count = await postDB.remove(id);
     Boolean(count)
-      ? res.status(200).json({ message: 'The post has been deleted.', id })
+      ? res.status(200).json({ message: 'The post has been deleted.' })
       : res.status(404).json({ message: 'The post with the specified ID does not exist.' });
   } catch (error) {
     res.status(500).json({
