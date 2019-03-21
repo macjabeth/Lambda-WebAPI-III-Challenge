@@ -3,7 +3,7 @@ import { Link, NavLink, Route } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
-const url = 'http://penguin.linux.test:4000/api/users';
+const url = 'https://lambda-webapi.herokuapp.com/api/users';
 
 class App extends Component {
   state = { users: [] }
