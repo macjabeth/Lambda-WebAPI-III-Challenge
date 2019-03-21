@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const user = await userDB.getById(id);
+    const user = await userDB.getById(post.user_id);
     Boolean(user)
       ? res.status(201).json(await postDB.insert(post))
       : res.status(404).json({ message: 'The user with the specified ID does not exist.' });
@@ -53,25 +53,26 @@ router.get('/:id', async (req, res) => {
 // U - PUT
 router.put('/:id', async (req, res) => {
   const {
-    body: post,
+    body: changes,
     params: { id }
   } = req;
 
-  if (!post.text) {
+  if (!changes.text) {
     return res.status(400).json({
       error: 'Please provide text for the post.'
     });
   }
 
   try {
-    const user = await userDB.getById(id);
-    Boolean(user)
-      ? user.id === id
-        ? Boolean(await postDB.update(id, post))
+    let user, post;
+    // this was a doozy!
+    Boolean(user = await userDB.getById(changes.user_id))
+      ? (post = await postDB.getById(id)) && (user.id === post.user_id)
+        ? Boolean(await postDB.update(id, changes))
           ? res.status(200).json(await postDB.getById(id))
           : res.status(404).json({ message: 'The post with the specified ID does not exist.' })
         : res.status(401).json({ message: 'You are not authorised to edit this post.' })
-      : res.status(404).json({ message: 'The user with the specified ID does not exist.' });
+      : res.status(404).json({ message: 'The user attempting to edit this post does not exist.' })
   } catch (error) {
     res.status(500).json({
       error: `The post information could not be modified; ${error}`
