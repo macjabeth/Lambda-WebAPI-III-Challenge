@@ -1,0 +1,7 @@
+.app {
+  padding: 15px;
+}
+
+a.active {
+  color: red;
+}
